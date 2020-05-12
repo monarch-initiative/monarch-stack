@@ -1,4 +1,5 @@
-MONARCH = https://archive.monarchinitiative.org/202003/
+ARCHIVE = https://archive.monarchinitiative.org/202003
+UI_RELEASE = https://github.com/monarch-initiative/monarch-ui/releases/download/v1.0.2/static-assets.tar.gz
 
 BASE = ./data
 MONARCH_GID = 14728
@@ -32,13 +33,11 @@ SOLR_DATA = $(BASE)/solr/data
 
 MONARCH_UI_DIST = $(BASE)/monarch-ui/dist
 
-all: $(SOLR) $(OWLSIM_FILES) $(SCIGRAPH_DATA) $(SCIGRAPH_ONTOLOGY) $(MONARCH_UI)
+all: extract_scigraph_ontology extract_scigraph_data extract_solr extract_ui extract_owlsim
 
-extract_all: extract_sciontology extract_scidata extract_solr extract_ui extract_owlsim
+extract_scigraph_ontology: $(SCIONTOLOGY_GRAPH) $(SCIONTOLOGY_CONF)
 
-extract_sciontology: $(SCIONTOLOGY_GRAPH) $(SCIONTOLOGY_CONF)
-
-extract_scidata: $(SCIDATA_GRAPH) $(SCIDATA_CONF)
+extract_scigraph_data: $(SCIDATA_GRAPH) $(SCIDATA_CONF)
 
 extract_solr: $(SOLR_DATA)
 
@@ -46,27 +45,28 @@ extract_ui: $(MONARCH_UI_DIST)
 
 extract_owlsim: $(OWLSIM_FILES)
 
+
 $(SCIGRAPH_DATA):
-	cd $(BASE) && $(WGET) https://archive.monarchinitiative.org/latest/scigraph.tgz
+	cd $(BASE) && $(WGET) $(ARCHIVE)/scigraph.tgz
 	chgrp $(MONARCH_GID) $@
 
 $(SCIGRAPH_ONTOLOGY):
-	cd $(BASE) && $(WGET) https://archive.monarchinitiative.org/latest/scigraph-ontology.tgz
+	cd $(BASE) && $(WGET) $(ARCHIVE)/scigraph-ontology.tgz
 	chgrp $(MONARCH_GID) $@
 
 $(SOLR):
-	cd $(BASE) && $(WGET) https://archive.monarchinitiative.org/latest/solr.tgz
+	cd $(BASE) && $(WGET) $(ARCHIVE)/solr.tgz
 	chgrp $(MONARCH_GID) $@
 
 $(MONARCH_UI):
-	cd $(BASE) && $(WGET) https://github.com/monarch-initiative/monarch-ui/releases/download/v1.0.2/static-assets.tar.gz
+	cd $(BASE) && $(WGET) $(UI_RELEASE)
 	chgrp $(MONARCH_GID) $@
 
 $(OWLSIM_FILES):
 	mkdir $(BASE)/owlsim-new
-	cd $(BASE)/owlsim-new && $(WGET) https://archive.monarchinitiative.org/latest/owlsim/all.owl
-	cd $(BASE)/owlsim-new && $(WGET) https://archive.monarchinitiative.org/latest/owlsim/ic-cache.owl
-	cd $(BASE)/owlsim-new && $(WGET) https://archive.monarchinitiative.org/latest/owlsim/owlsim.cache
+	cd $(BASE)/owlsim-new && $(WGET) $(ARCHIVE)/owlsim/all.owl
+	cd $(BASE)/owlsim-new && $(WGET) $(ARCHIVE)/owlsim/ic-cache.owl
+	cd $(BASE)/owlsim-new && $(WGET) $(ARCHIVE)/owlsim/owlsim.cache
 	chgrp --recursive $(MONARCH_GID) $(BASE)/owlsim-new
 	rm -rf $(BASE)/owlsim-old
 	mv $(BASE)/owlsim $(BASE)/owlsim-old || true
@@ -74,44 +74,41 @@ $(OWLSIM_FILES):
 
 $(SCIDATA_GRAPH): $(SCIGRAPH_DATA)
 	mkdir --parents $(BASE)/scigraph-data-new/data
-	tar -I pigz -xf $(SCIGRAPH_DATA) --no-same-owner --directory $(BASE)/scigraph-data-new/data
+	tar -I pigz -xf $(SCIGRAPH_DATA) --no-same-owner --no-same-permissions --directory $(BASE)/scigraph-data-new/data
 	chgrp --recursive $(MONARCH_GID) $(BASE)/scigraph-data-new
-	chmod --recursive g+w $(BASE)/scigraph-data-new
 	rm -rf $(BASE)/scigraph-data-old
 	mv $(BASE)/scigraph-data $(BASE)/scigraph-data-old || true
 	mv $(BASE)/scigraph-data-new $(BASE)/scigraph-data
 
 $(SCIONTOLOGY_GRAPH): $(SCIGRAPH_ONTOLOGY)
 	mkdir --parents $(BASE)/scigraph-ontology-new/data
-	tar -I pigz -xf $(SCIGRAPH_ONTOLOGY) --no-same-owner --directory $(BASE)/scigraph-ontology-new/data
+	tar -I pigz -xf $(SCIGRAPH_ONTOLOGY) --no-same-owner --no-same-permissions --directory $(BASE)/scigraph-ontology-new/data
 	chgrp --recursive $(MONARCH_GID) $(BASE)/scigraph-ontology-new
-	chmod --recursive g+w $(BASE)/scigraph-ontology-new
 	rm -rf $(BASE)/scigraph-ontology-old
 	mv $(BASE)/scigraph-ontology $(BASE)/scigraph-ontology-old || true
 	mv $(BASE)/scigraph-ontology-new $(BASE)/scigraph-ontology
 
 $(SCIDATA_CONF): | $(SCIDATA_GRAPH)
 	mkdir --parents $(BASE)/scigraph-data/conf
-	cd $(BASE)/scigraph-data/conf && $(WGET) https://archive.monarchinitiative.org/latest/conf/scigraph-data.yaml
+	cd $(BASE)/scigraph-data/conf && $(WGET) $(ARCHIVE)/conf/scigraph-data.yaml
 	chgrp --recursive $(MONARCH_GID) $(BASE)/scigraph-data/conf
 
 $(SCIONTOLOGY_CONF): | $(SCIONTOLOGY_GRAPH)
 	mkdir --parents $(BASE)/scigraph-ontology/conf
-	cd $(BASE)/scigraph-ontology/conf && $(WGET) https://archive.monarchinitiative.org/latest/conf/scigraph-ontology.yaml
+	cd $(BASE)/scigraph-ontology/conf && $(WGET) $(ARCHIVE)/conf/scigraph-ontology.yaml
 	chgrp --recursive $(MONARCH_GID) $(BASE)/scigraph-ontology/conf
 
 $(SOLR_DATA): $(SOLR)
 	mkdir $(BASE)/solr-new
-	tar -I pigz -xf $(SOLR) --no-same-owner --directory $(BASE)/solr-new
+	tar -I pigz -xf $(SOLR) --no-same-owner --directory --no-same-permissions $(BASE)/solr-new
 	chgrp --recursive $(SOLR_GID) $(BASE)/solr-new
-	chmod --recursive g+w $(BASE)/solr-new
 	rm -rf $(BASE)/solr-old
 	mv $(BASE)/solr $(BASE)/solr-old || true
 	mv $(BASE)/solr-new $(BASE)/solr
 
 $(MONARCH_UI_DIST): $(MONARCH_UI)
 	mkdir $(BASE)/monarch-ui-new
-	tar -I pigz -xf $(MONARCH_UI) --no-same-owner --directory $(BASE)/monarch-ui-new
+	tar -I pigz -xf $(MONARCH_UI) --no-same-owner --no-same-permissions --directory $(BASE)/monarch-ui-new
 	chgrp --recursive $(MONARCH_GID) $(BASE)/monarch-ui-new
 	rm -rf $(BASE)/monarch-ui-old
 	mv $(BASE)/monarch-ui $(BASE)/monarch-ui-old || true
