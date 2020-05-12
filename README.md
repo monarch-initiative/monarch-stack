@@ -1,2 +1,2 @@
 # monarch-stack
-Specifcation for deploying monarch services docker containers
+Specifcation for deploying monarch services with docker containers

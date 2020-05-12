@@ -7,7 +7,7 @@
 
 docker pull monarchinitiative/gcc-pigz:10.1
 
-docker run --workdir /usr/src/ -v `pwd`:/usr/src/ monarchinitiative/gcc-pigz:10.1  make extract_solr
+docker run --workdir /usr/src/ -v `pwd`:/usr/src/ monarchinitiative/gcc-pigz:10.1  /bin/sh -c 'umask 0002 && make extract_solr'
 
 docker pull solr:6.6-slim
 docker run --restart=unless-stopped -d -v `pwd`/solr/data:/data -e SOLR_HOME=/data -p 8983:8983 solr:6.6-slim 
@@ -18,7 +18,7 @@ curl "localhost:8983/solr/golr/select?q=*:*&wt=json"
 ### Scigraph Data
 #################
 
-docker run --workdir /usr/src/ -v `pwd`:/usr/src/ monarchinitiative/gcc-pigz:10.1  make extract_scidata
+docker run --workdir /usr/src/ -v `pwd`:/usr/src/ monarchinitiative/gcc-pigz:10.1  /bin/sh -c 'umask 0002 && make extract_scidata'
 
 docker pull monarchinitiative/scigraph:2.2
 
@@ -30,7 +30,7 @@ curl "localhost:9000/scigraph/graph/HGNC%3A11027"
 ### Scigraph Ontology
 #####################
 
-docker run --workdir /usr/src/ -v `pwd`:/usr/src/ monarchinitiative/gcc-pigz:10.1  make extract_sciontology
+docker run --workdir /usr/src/ -v `pwd`:/usr/src/ monarchinitiative/gcc-pigz:10.1  /bin/sh -c 'umask 0002 && make extract_sciontology'
 
 docker run --restart=unless-stopped -v `pwd`/scigraph-ontology/data:/data -v `pwd`/scigraph-ontology/conf:/scigraph/conf -d -p 9090:9000 --name scigraph-ontology monarchinitiative/scigraph:2.2 start-scigraph-service scigraph-ontology.yaml
 
@@ -39,7 +39,7 @@ curl "localhost:9090/scigraph/graph/MONDO:0000001"
 ### Owlsim
 ##########
 
-docker run --workdir /usr/src/ -v `pwd`:/usr/src/ monarchinitiative/gcc-pigz:10.1  make fetch_owlsim
+docker run --workdir /usr/src/ -v `pwd`:/usr/src/ monarchinitiative/gcc-pigz:10.1  make /bin/sh -c 'umask 0002 && extract_owlsim'
 
 docker pull monarchinitiative/owlsim:0.3.0
 
@@ -63,11 +63,10 @@ curl http://localhost:5000/api/bioentity/gene/NCBIGene%3A4750/diseases
 ### UI
 ##########
 
-docker run --workdir /usr/src/ -v `pwd`:/usr/src/ monarchinitiative/gcc-pigz:10.1  make extract_ui
+docker run --workdir /usr/src/ -v `pwd`:/usr/src/ monarchinitiative/gcc-pigz:10.1  /bin/sh -c 'umask 0002 && make extract_ui'
 
 docker pull monarchinitiative/nginx:1.18.0
 
 docker run -d -v `pwd`/monarch-ui/dist:/app -p 8181:80 monarchinitiative/nginx:1.18.0
 
 curl localhost:8181
-
