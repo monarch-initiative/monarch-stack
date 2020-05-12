@@ -1,0 +1,67 @@
+version: "3"
+services:
+
+  solr:
+    image: solr:6.6-slim 
+    ports:
+      - "8983:8983"
+    volumes:
+      - "${DATADIR}/solr/data:/data"
+    environment:
+      - "SOLR_HOME=/data"
+    restart: "unless-stopped"
+  
+  scigraph-data:
+    image: monarchinitiative/scigraph:2.2
+    ports:
+      - "9000:9000"
+    volumes:
+      - "${DATADIR}/scigraph-data/data:/data"
+      - "${DATADIR}/scigraph-data/conf:/scigraph/conf"
+    restart: "unless-stopped"
+    command: "start-scigraph-service scigraph-data.yaml"
+
+  scigraph-ontology:
+    image: monarchinitiative/scigraph:2.2
+    ports:
+      - "9090:9000"
+    volumes:
+      - "${DATADIR}/scigraph-ontology/data:/data"
+      - "${DATADIR}/scigraph-ontology/conf:/scigraph/conf"
+    restart: "unless-stopped"
+    command: "start-scigraph-service scigraph-ontology.yaml"
+
+  owlsim:
+    image: monarchinitiative/owlsim:0.3.0
+    ports:
+      - "9031:9031"
+    volumes:
+      - "${DATADIR}/owlsim:/data"
+    restart: "unless-stopped"
+    command: "/bin/sh -c 'export OWLTOOLS_MEMORY=45G && owltools /data/all.owl --use-fsim  --sim-load-lcs-cache /data/owlsim.cache --sim-load-ic-cache /data/ic-cache.owl --start-sim-server -p 9031'"
+
+  biolink:
+    image: monarchinitiative/biolink-api:1.0.1
+    ports:
+      - "5000:5000"
+    volumes:
+      - "./resources:/config"
+    restart: "unless-stopped"
+    depends_on:
+      - "solr"
+      - "scigraph-data"
+      - "scigraph-ontology"
+      - "owlsim"
+    command: ["/config/wait-for-owlsim.sh", "start-server -k gevent --worker-connections 5 --bind 0.0.0.0:5000 wsgi:app"]
+
+
+  monarch-ui:
+    image: monarchinitiative/nginx:1.18.0
+    ports:
+      - "8181:80"
+    volumes:
+      - "${DATADIR}/monarch-ui/dist:/app"
+    restart: "unless-stopped"
+    depends_on:
+      - "biolink"
+
