@@ -67,7 +67,7 @@ The data directory will have the following structure:
   - monarch-ui-old/
 
 Each directory contains data and configuration files needed for the Monarch services.
-The -old directories contain the files for the previous run of make, or be empty if
+The -old directories contain the files for the previous run of make or will be empty if
 this is the first time running make.
 
 #### Fetching data for a single service
@@ -87,7 +87,7 @@ All Monarch services can be composed by running
 DATADIR=/path/to/data/ docker-compose up
 ```
 Note that owlsim takes 12 minutes to initialize, followed by a warm up query generated
-by the biolink container that takes an additional ~20 minutes.
+by the biolink container which takes an additional ~20 minutes.
 
 In practice, our backend services change infrequently so it is useful to separate 
 data providing backend services (solr, scigraph-data, scigraph-ontology, owlsim) and
@@ -100,4 +100,4 @@ DATADIR=/path/to/data docker-compose -f services/backend.yml up
 
 ### Testing
 
-Test are a WIP, but the services/ compose files contain healthchecks.
+Tests are a WIP, but the services/ compose files contain healthchecks.
