@@ -11,6 +11,14 @@ services:
       - "SOLR_HOME=/data"
       - "SOLR_HEAP=50g"
     restart: "unless-stopped"
+    networks:
+      - "monarchnet"
+    healthcheck:
+      test: "curl -f localhost:8983/solr/golr/select?q=*:*&rows=1 || exit 1"
+      interval: 2m
+      timeout: 10s
+      retries: 3
+      start_period: 60s
   
   scigraph-data:
     image: monarchinitiative/scigraph:2.2
@@ -21,6 +29,14 @@ services:
       - "${DATADIR}/scigraph-data/conf:/scigraph/conf"
     restart: "unless-stopped"
     command: "start-scigraph-service scigraph-data.yaml"
+    networks:
+      - "monarchnet"
+    healthcheck:
+      test: "curl -f localhost:9000/scigraph/graph/HGNC%3A11027 || exit 1"
+      interval: 2m
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   scigraph-ontology:
     image: monarchinitiative/scigraph:2.2
@@ -31,6 +47,14 @@ services:
       - "${DATADIR}/scigraph-ontology/conf:/scigraph/conf"
     restart: "unless-stopped"
     command: "start-scigraph-service scigraph-ontology.yaml"
+    networks:
+      - "monarchnet"
+    healthcheck:
+      test: "curl -f localhost:9000/scigraph/graph/MONDO:0000001 || exit 1"
+      interval: 2m
+      timeout: 10s
+      retries: 3
+      start_period: 60s
 
   owlsim:
     image: monarchinitiative/owlsim:0.3.0
@@ -40,28 +64,16 @@ services:
       - "${DATADIR}/owlsim:/data"
     restart: "unless-stopped"
     command: "/bin/sh -c 'export OWLTOOLS_MEMORY=45G && owltools /data/all.owl --use-fsim  --sim-load-lcs-cache /data/owlsim.cache --sim-load-ic-cache /data/ic-cache.owl --start-sim-server -p 9031'"
+    networks:
+      - "monarchnet"
+    healthcheck:
+      test: "curl -f localhost:9031/getAttributeInformationProfile || exit 1"
+      interval: 2m
+      timeout: 10s
+      retries: 3
+      start_period: 20m
 
-  biolink:
-    image: monarchinitiative/biolink-api:1.0.1
-    ports:
-      - "5000:5000"
-    volumes:
-      - "./resources:/config"
-    restart: "unless-stopped"
-    depends_on:
-      - "solr"
-      - "scigraph-data"
-      - "scigraph-ontology"
-      - "owlsim"
-    command: ["/config/wait-for-owlsim.sh", "start-server -k gevent --worker-connections 5 --bind 0.0.0.0:5000 wsgi:app"]
-
-  monarch-ui:
-    image: monarchinitiative/nginx:1.18.0
-    ports:
-      - "8181:80"
-    volumes:
-      - "${DATADIR}/monarch-ui/dist:/app"
-    restart: "unless-stopped"
-    depends_on:
-      - "biolink"
-
+networks:
+  monarchnet:
+    driver: "bridge"
+    name: "monarch-network"

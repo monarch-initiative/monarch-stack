@@ -1,0 +1,43 @@
+version: "3.8"
+services:
+
+  biolink:
+    image: monarchinitiative/biolink-api:1.0.1
+    ports:
+      - "5000:5000"
+    volumes:
+      - "../resources:/config"
+    restart: "unless-stopped"
+    networks:
+      - "monarchnet"
+    command: ["/config/wait-for-owlsim.sh", "start-server -k gevent --worker-connections 5 --bind 0.0.0.0:5000 wsgi:app"]
+    healthcheck:
+      test: "curl -f http://localhost:5000/api/bioentity/gene/NCBIGene%3A4750/diseases || exit 1"
+      interval: 5m
+      timeout: 10s
+      retries: 3
+      start_period: 20m
+
+
+  monarch-ui:
+    image: monarchinitiative/nginx:1.18.0
+    ports:
+      - "8181:80"
+    volumes:
+      - "${DATADIR}/monarch-ui/dist:/app"
+    restart: "unless-stopped"
+    networks:
+      - "monarchnet"
+    depends_on:
+      - "biolink"
+    healthcheck:
+      test: "curl -f http://localhost:80 || exit 1"
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+
+networks:
+  monarchnet:
+    external: true
+    name: "monarch-network"
