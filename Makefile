@@ -1,3 +1,8 @@
+MAKEFLAGS += --warn-undefined-variables
+MAKEFLAGS += --no-builtin-rules
+MAKEFLAGS += --no-builtin-variables
+
+# Monarch release versions
 ARCHIVE ?= https://archive.monarchinitiative.org/latest
 UI_RELEASE ?= https://github.com/monarch-initiative/monarch-ui/releases/latest/download/static-assets.tar.gz
 
@@ -32,6 +37,10 @@ ONTOLOGY_GRAPH = $(DATADIR)/scigraph-ontology/graph
 SOLR_DATA = $(DATADIR)/solr/data
 
 MONARCH_UI_DIST = $(DATADIR)/monarch-ui/dist
+
+
+.PHONY: fetch_scigraph_ontology fetch_scigraph_data fetch_solr fetch_ui fetch_owlsim
+
 
 all: fetch_scigraph_ontology fetch_scigraph_data fetch_solr fetch_ui fetch_owlsim
 
