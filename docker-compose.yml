@@ -11,7 +11,14 @@ services:
       - "SOLR_HOME=/data"
       - "SOLR_HEAP=50g"
     restart: "unless-stopped"
-  
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.app_type==solr_plus"
+      resources:
+        reservations:
+          memory: 12G
+      
   scigraph-data:
     image: monarchinitiative/scigraph:2.2
     ports:
@@ -21,7 +28,14 @@ services:
       - "${DATADIR}/scigraph-data/conf:/scigraph/conf"
     restart: "unless-stopped"
     command: "start-scigraph-service scigraph-data.yaml"
-
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.app_type==scigraph"
+      resources:
+        reservations:
+          memory: 6G
+        
   scigraph-ontology:
     image: monarchinitiative/scigraph:2.2
     ports:
@@ -31,7 +45,14 @@ services:
       - "${DATADIR}/scigraph-ontology/conf:/scigraph/conf"
     restart: "unless-stopped"
     command: "start-scigraph-service scigraph-ontology.yaml"
-
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.app_type==scigraph"
+      resources:
+        reservations:
+          memory: 6G
+  
   owlsim:
     image: monarchinitiative/owlsim:0.3.0
     ports:
@@ -39,7 +60,14 @@ services:
     volumes:
       - "${DATADIR}/owlsim:/data"
     restart: "unless-stopped"
-    command: "/bin/sh -c 'export OWLTOOLS_MEMORY=45G && owltools /data/all.owl --use-fsim  --sim-load-lcs-cache /data/owlsim.cache --sim-load-ic-cache /data/ic-cache.owl --start-sim-server -p 9031'"
+    command: "/bin/sh -c 'export OWLTOOLS_MEMORY=25G && owltools /data/all.owl --use-fsim  --sim-load-lcs-cache /data/owlsim.cache --sim-load-ic-cache /data/ic-cache.owl --start-sim-server -p 9031'"
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.app_type==owlsim"
+      resources:
+        reservations:
+          memory: 25G
 
   biolink:
     image: monarchinitiative/biolink-api:1.1.15
@@ -54,7 +82,11 @@ services:
       - "scigraph-ontology"
       - "owlsim"
     command: ["/config/wait-for-owlsim.sh", "start-server -k gevent --worker-connections 5 --bind 0.0.0.0:5000 wsgi:app"]
-
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.app_type==solr_plus"
+  
   monarch-ui:
     image: monarchinitiative/nginx:1.18.0
     ports:
@@ -64,4 +96,8 @@ services:
     restart: "unless-stopped"
     depends_on:
       - "biolink"
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.app_type==solr_plus"
 
