@@ -42,7 +42,7 @@ services:
     command: "/bin/sh -c 'export OWLTOOLS_MEMORY=45G && owltools /data/all.owl --use-fsim  --sim-load-lcs-cache /data/owlsim.cache --sim-load-ic-cache /data/ic-cache.owl --start-sim-server -p 9031'"
 
   biolink:
-    image: monarchinitiative/biolink-api:1.0.1
+    image: monarchinitiative/biolink-api:v1.1.10
     ports:
       - "5000:5000"
     volumes:
