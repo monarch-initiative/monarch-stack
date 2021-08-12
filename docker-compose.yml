@@ -70,7 +70,7 @@ services:
           memory: 45G
 
   biolink:
-    image: monarchinitiative/biolink-api:1.0.1
+    image: monarchinitiative/biolink-api:v1.1.10
     ports:
       - "5000:5000"
     volumes:
@@ -101,3 +101,15 @@ services:
         constraints:
           - "node.labels.app_type==solr_plus"
 
+  balancer:
+    image: balancer:0.0.1
+    volumes:
+      - "/etc/letsencrypt:/etc/letsencrypt"
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: "unless-stopped"
+    deploy:
+      placement:
+        constraints:
+          - "node.role==manager"
