@@ -9,7 +9,7 @@ services:
       - "${DATADIR}/solr/data:/data"
     environment:
       - "SOLR_HOME=/data"
-      - "SOLR_HEAP=50g"
+      - "SOLR_HEAP=10g"
     restart: "unless-stopped"
     deploy:
       placement:
@@ -60,14 +60,14 @@ services:
     volumes:
       - "${DATADIR}/owlsim:/data"
     restart: "unless-stopped"
-    command: "/bin/sh -c 'export OWLTOOLS_MEMORY=25G && owltools /data/all.owl --use-fsim  --sim-load-lcs-cache /data/owlsim.cache --sim-load-ic-cache /data/ic-cache.owl --start-sim-server -p 9031'"
+    command: "/bin/sh -c 'export OWLTOOLS_MEMORY=45G && owltools /data/all.owl --use-fsim  --sim-load-lcs-cache /data/owlsim.cache --sim-load-ic-cache /data/ic-cache.owl --start-sim-server -p 9031'"
     deploy:
       placement:
         constraints:
           - "node.labels.app_type==owlsim"
       resources:
         reservations:
-          memory: 25G
+          memory: 45G
 
   biolink:
     image: monarchinitiative/biolink-api:1.1.15
