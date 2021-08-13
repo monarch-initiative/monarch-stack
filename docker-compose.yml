@@ -106,12 +106,6 @@ services:
       - "scigraph-ontology"
       - "owlsim"
     command: ["/config/wait-for-owlsim.sh", "start-server -k gevent --worker-connections 5 --bind 0.0.0.0:5000 wsgi:app"]
-    healthcheck:
-      test: "curl -f http://localhost:5000/api/bioentity/gene/NCBIGene%3A4750/diseases || exit 1"
-      interval: 5m
-      timeout: 10s
-      retries: 3
-      start_period: 20m
     deploy:
       placement:
         constraints:
@@ -147,12 +141,6 @@ services:
     restart: "unless-stopped"
     depends_on:
       - "biolink"
-    healthcheck:
-      test: "curl -f https://localhost || exit 1"
-      interval: 1m
-      timeout: 10s
-      retries: 3
-      start_period: 20m
     deploy:
       placement:
         constraints:
