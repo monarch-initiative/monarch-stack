@@ -133,7 +133,7 @@ services:
           - "node.labels.app_type==solr_plus"
 
   balancer:
-    image: balancer:0.0.2
+    image: balancer:0.0.3
     volumes:
       - "/etc/letsencrypt:/etc/letsencrypt"
     ports:
