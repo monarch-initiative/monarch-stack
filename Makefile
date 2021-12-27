@@ -3,7 +3,7 @@ MAKEFLAGS += --no-builtin-rules
 MAKEFLAGS += --no-builtin-variables
 
 # Monarch release versions
-ARCHIVE ?= https://archive.monarchinitiative.org/latest
+ARCHIVE ?= https://data-test.monarchinitiative.org/monarch/202109
 UI_RELEASE ?= https://github.com/monarch-initiative/monarch-ui/releases/latest/download/static-assets.tar.gz
 
 DATADIR ?= ./data
