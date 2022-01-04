@@ -95,7 +95,8 @@ services:
           memory: 59G
 
   biolink:
-    image: monarchinitiative/biolink-api:1.1.14
+    # image: monarchinitiative/biolink-api:1.1.15
+    image: falquaddoomi/biolink-api:1.1.14-py39
     ports:
       - "5000:5000"
     volumes:
@@ -106,7 +107,7 @@ services:
       - "scigraph-data"
       - "scigraph-ontology"
       - "owlsim"
-    command: ["/config/wait-for-owlsim.sh", "start-server -k gevent --worker-connections 5 --bind 0.0.0.0:5000 wsgi:app"]
+    command: ["/config/wait-for-owlsim.sh", "start-server -k gevent --preload --worker-connections 5 --bind 0.0.0.0:5000 wsgi:app"]
     deploy:
       placement:
         constraints:
