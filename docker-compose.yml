@@ -104,7 +104,8 @@ services:
 
   biolink:
     # image: monarchinitiative/biolink-api:1.1.15
-    image: falquaddoomi/biolink-api:1.1.14-py39
+    # image: falquaddoomi/biolink-api:1.1.14-py39
+    image: us-central1-docker.pkg.dev/monarch-initiative/monarch-initiative/biolink-api:1.1.16
     ports:
       - "5000:5000"
     volumes:
