@@ -39,7 +39,10 @@ SOLR_DATA = $(DATADIR)/solr/data
 MONARCH_UI_DIST = $(DATADIR)/monarch-ui/dist
 
 
-.PHONY: fetch_scigraph_ontology fetch_scigraph_data fetch_solr fetch_ui fetch_owlsim
+.PHONY: fetch_scigraph_ontology fetch_scigraph_data fetch_solr fetch_ui fetch_owlsim list
+
+list:
+	@LC_ALL=C $(MAKE) -pRrq -f $(lastword $(MAKEFILE_LIST)) : 2>/dev/null | awk -v RS= -F: '/^# File/,/^# Finished Make data base/ {if ($$1 !~ "^[#.]") {print $$1}}' | sort | egrep -v -e '^[^[:alnum:]]' -e '^$@$$'
 
 
 all: fetch_scigraph_ontology fetch_scigraph_data fetch_solr fetch_ui fetch_owlsim

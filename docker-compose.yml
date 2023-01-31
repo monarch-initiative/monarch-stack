@@ -9,9 +9,23 @@ services:
       - "${DATADIR}/solr/data:/data"
     environment:
       - "SOLR_HOME=/data"
-      - "SOLR_HEAP=50g"
+      - "SOLR_HEAP=14G"
+      - "SOLR_JAVA_MEM=-Xms8g -Xmx14g"
     restart: "unless-stopped"
-  
+    healthcheck:
+      test: "curl -f localhost:8983/solr/golr/select?q=*:*&rows=1 || exit 1"
+      interval: 2m
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.app_type==solr_plus"
+      resources:
+        reservations:
+          memory: 12G
+      
   scigraph-data:
     image: monarchinitiative/scigraph:2.2
     ports:
@@ -21,7 +35,20 @@ services:
       - "${DATADIR}/scigraph-data/conf:/scigraph/conf"
     restart: "unless-stopped"
     command: "start-scigraph-service scigraph-data.yaml"
-
+    healthcheck:
+      test: "curl -f localhost:9000/scigraph/graph/HGNC%3A11027 || exit 1"
+      interval: 2m
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.app_type==scigraph"
+      resources:
+        reservations:
+          memory: 6G
+        
   scigraph-ontology:
     image: monarchinitiative/scigraph:2.2
     ports:
@@ -31,7 +58,20 @@ services:
       - "${DATADIR}/scigraph-ontology/conf:/scigraph/conf"
     restart: "unless-stopped"
     command: "start-scigraph-service scigraph-ontology.yaml"
-
+    healthcheck:
+      test: "curl -f localhost:9000/scigraph/graph/MONDO:0000001 || exit 1"
+      interval: 2m
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.app_type==scigraph"
+      resources:
+        reservations:
+          memory: 6G
+  
   owlsim:
     image: monarchinitiative/owlsim:0.3.0
     ports:
@@ -40,9 +80,22 @@ services:
       - "${DATADIR}/owlsim:/data"
     restart: "unless-stopped"
     command: "/bin/sh -c 'export OWLTOOLS_MEMORY=45G && owltools /data/all.owl --use-fsim  --sim-load-lcs-cache /data/owlsim.cache --sim-load-ic-cache /data/ic-cache.owl --start-sim-server -p 9031'"
+    # healthcheck:
+    #   test: "curl -f localhost:9031/getAttributeInformationProfile || exit 1"
+    #   interval: 2m
+    #   timeout: 10s
+    #   retries: 3
+    #   start_period: 20m
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.app_type==owlsim"
+      resources:
+        reservations:
+          memory: 45G
 
   biolink:
-    image: monarchinitiative/biolink-api:1.1.15
+    image: falquaddoomi/biolink-api:v1.1.10 # monarchinitiative/biolink-api:v1.1.10
     ports:
       - "5000:5000"
     volumes:
@@ -54,7 +107,11 @@ services:
       - "scigraph-ontology"
       - "owlsim"
     command: ["/config/wait-for-owlsim.sh", "start-server -k gevent --worker-connections 5 --bind 0.0.0.0:5000 wsgi:app"]
-
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.app_type==solr_plus"
+  
   monarch-ui:
     image: monarchinitiative/nginx:1.18.0
     ports:
@@ -64,4 +121,28 @@ services:
     restart: "unless-stopped"
     depends_on:
       - "biolink"
+    healthcheck:
+      test: "curl -f http://localhost:80 || exit 1"
+      interval: 1m
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      placement:
+        constraints:
+          - "node.labels.app_type==solr_plus"
 
+  balancer:
+    image: balancer:0.0.3
+    volumes:
+      - "/etc/letsencrypt:/etc/letsencrypt"
+    ports:
+      - "80:80"
+      - "443:443"
+    restart: "unless-stopped"
+    depends_on:
+      - "biolink"
+    deploy:
+      placement:
+        constraints:
+          - "node.role==manager"
